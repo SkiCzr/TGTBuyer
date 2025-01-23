@@ -43,6 +43,16 @@ def set_leverage(session, pair, leverage):
         sellLeverage=str(leverage),
     ))
 
+def get_all_coins(session):
+    coins = []
+    coin_list = session.get_instruments_info(
+        category="spot",
+    )['result']['list']
+    for coin in coin_list:
+        if len(coin['baseCoin']) > 1:
+            coins.append(coin['baseCoin'])
+    return set(coins)
+
 def open_position(session, suma, trade):
 
     current_price = float(get_current_price(session, trade.pair))

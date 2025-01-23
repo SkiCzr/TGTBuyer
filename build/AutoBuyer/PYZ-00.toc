@@ -255,6 +255,9 @@
    'C:\\Users\\vinte\\Desktop\\Personal '
    'Projects\\TGTBuyer\\.venv\\Lib\\site-packages\\Crypto\\Util\\strxor.py',
    'PYMODULE'),
+  ('Decomposers',
+   'C:\\Users\\vinte\\Desktop\\Personal Projects\\TGTBuyer\\Decomposers.py',
+   'PYMODULE'),
   ('TGReader',
    'C:\\Users\\vinte\\Desktop\\Personal Projects\\TGTBuyer\\TGReader.py',
    'PYMODULE'),
