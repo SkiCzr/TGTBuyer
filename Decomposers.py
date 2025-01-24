@@ -5,22 +5,24 @@ from Trade import MyTrade
 
 
 def MessageDecomposer(session,message):
+    message = message.upper()
     trade_type = re.search(r"LONG|SHORT", message)
     # Checking if the message is a TradeExamples
     if trade_type is None:
         return None
     #Finding info about the TradeExamples by pattern matching
-    trade_type = re.search(r"LONG|SHORT", message).group(0)
+    try:
+        trade_type = re.search(fr"(?<!\w)(SHORT|LONG)(?!\w)", message).group(0)
+    except AttributeError as e:
+        print('Type of position not defined')
     coins = get_all_coins(session)
     foundCoin = '0'
     for coin in coins:
-        if coin != 'USDT':
+        if coin != 'USDT' and coin not in 'SHORT' and coin not in 'LONG':
             if coin in message:
-                if foundCoin == '0':
+                pattern = fr'(?<!\w){coin}(?!\w)'
+                if re.search(pattern, message):
                     foundCoin = coin
-                else:
-                    if len(foundCoin) < len(coin):
-                        foundCoin = coin
 
     if foundCoin == '0':
         return None
