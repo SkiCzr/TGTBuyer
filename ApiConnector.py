@@ -23,10 +23,14 @@ def get_current_price(session, pair):
     )
     return tickers["result"]["list"][0]["lastPrice"]
 def get_wallet_balance(session, coin):
+    print(session.get_wallet_balance(
+        accountType="UNIFIED",
+        coin=coin,
+    ))
     return float(session.get_wallet_balance(
         accountType="UNIFIED",
         coin=coin,
-    )['result']['list'][0]['totalAvailableBalance'])
+    )['result']['list'][0]['coin'][0]['walletBalance'])
 def open_session(API_KEY, API_SECRET):
     session = HTTP(
         demo=True,
@@ -73,13 +77,13 @@ def open_position(session, suma, trade):
         qty=quantity,
         orderFilter="Order",
     )
-    print(trade.take_profit3, trade.stop_loss1)
+    print(trade.take_profit_custom, trade.stop_loss_custom)
     print(place_order_response)
     print(session.set_trading_stop(
         category="linear",
         symbol=trade.pair,
-        takeProfit=round(trade.take_profit3, 5),
-        stopLoss=round(trade.stop_loss1, 5),
+        takeProfit=round(trade.take_profit_custom, 5),
+        stopLoss=round(trade.stop_loss_custom, 5),
         tpTriggerBy="MarkPrice",  # Use MarkPrice to trigger TP
         slTriggerBy="MarkPrice",  # Use MarkPrice to trigger SL
         tpslMode="Full",  # Apply both TP and SL

@@ -11,8 +11,10 @@ class MyTrade:
         self.take_profit4 = 0
         self.take_profit5 = 0
         self.take_profit6 = 0
+        self.take_profit_custom = 0
         self.stop_loss1 = 0
         self.stop_loss2 = 0
+        self.stop_loss_custom = 0
         self.Status = False
         self.ProfitsStatus = [False,False,False,False,False,False,False,False]
 
@@ -38,6 +40,10 @@ class MyTrade:
             self.take_profit6 = self.calcStopLoss(100, 0.50)
             self.stop_loss1 = self.calcTakeProfit(100, 0.2)
             self.stop_loss2 = self.calcTakeProfit(100, 0.3)
+
+    def calcCustomBounds(self, take_profit_percentage, stop_loss_percentage):
+        self.take_profit_custom = self.calcTakeProfit(100, take_profit_percentage)
+        self.stop_loss_custom = self.calcStopLoss(100, stop_loss_percentage)
 
     def calcTakeProfit(self, sum, percentage):
         # Quantity of coins bought for the entry price
