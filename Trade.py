@@ -42,8 +42,13 @@ class MyTrade:
             self.stop_loss2 = self.calcTakeProfit(100, 0.3)
 
     def calcCustomBounds(self, take_profit_percentage, stop_loss_percentage):
-        self.take_profit_custom = self.calcTakeProfit(100, take_profit_percentage)
-        self.stop_loss_custom = self.calcStopLoss(100, stop_loss_percentage)
+        if self.trade_type == 'LONG':
+            self.take_profit_custom = self.calcTakeProfit(100, take_profit_percentage)
+            self.stop_loss_custom = self.calcStopLoss(100, stop_loss_percentage)
+        else:
+            self.take_profit_custom = self.calcStopLoss(100, take_profit_percentage)
+            self.stop_loss_custom = self.calcTakeProfit(100, stop_loss_percentage)
+
 
     def calcTakeProfit(self, sum, percentage):
         # Quantity of coins bought for the entry price
