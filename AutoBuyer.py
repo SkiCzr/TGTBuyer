@@ -80,8 +80,9 @@ def save_and_start():
         group_params.append((balance, take_profit, stop_loss))
 
     write_to_file(telegram_api_id, telegram_api_hash, api_key, api_secret, group_names, group_params)
-    run_telegram_listener(telegram_api_id, telegram_api_hash, api_key, api_secret, group_names, group_params)
     root.destroy()
+    run_telegram_listener(telegram_api_id, telegram_api_hash, api_key, api_secret, group_names, group_params)
+
     print("Group Names:", group_names)
     print("Group Parameters:", group_params)
 
