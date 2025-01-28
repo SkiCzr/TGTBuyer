@@ -21,7 +21,6 @@ def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, gro
         if chat.title in groups:
             print(f"New message from {chat.title}")
             message_text = event.text
-            print(message_text)
             message_text = message_text.replace("*", "")
             print(event)
             trade = MessageDecomposer(session, message_text)
