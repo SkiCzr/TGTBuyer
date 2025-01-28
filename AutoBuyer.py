@@ -127,4 +127,5 @@ else:
     try:
         start_from_file()
     except Exception as e:
+        print(e)
         messagebox.showinfo("Failed", "Something is wrong with the file")

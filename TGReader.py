@@ -1,13 +1,16 @@
 
 import re
-from telethon import TelegramClient, events
+from datetime import datetime
 
+from telethon import TelegramClient, events
+import pytz
 from ApiConnector import open_session, open_position, get_current_price, get_wallet_balance
 from Decomposers import MessageDecomposer
 from Trade import MyTrade
 
 # Function to create and run a Telegram client that listens to messages
 def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, groups, params):
+    run_time = datetime.now(pytz.utc)
     client = TelegramClient("SESH", int(api_id), api_hash)
     session = open_session(bybit_api_key, bybit_api_secret)
     wallet_balance = get_wallet_balance(session, 'USDT')
@@ -18,8 +21,11 @@ def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, gro
         if chat.title in groups:
             print(f"New message from {chat.title}")
             message_text = event.text
+            print(message_text)
+            message_text = message_text.replace("*", "")
+            print(event)
             trade = MessageDecomposer(session, message_text)
-            if trade is not None:
+            if trade is not None and event.message.date > run_time:
                 try:
                     entryPoint = float(get_current_price(session, trade.pair))
                     trade.enterPosition(entryPoint)

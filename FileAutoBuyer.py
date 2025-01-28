@@ -6,7 +6,7 @@ from TGReader import run_telegram_listener
 def start_from_file():
     group_names = []
     group_params = []
-    with open("params", "r") as file:
+    with open("params", "r", encoding="utf-8") as file:
         lines = file.readlines()
         try:
             telegram_api_key = lines[0].strip()
