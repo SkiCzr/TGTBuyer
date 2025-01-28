@@ -18,25 +18,27 @@ def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, gro
     async def handler(event):
         """Handle new messages from the source group."""
         chat = await event.get_chat()
-        if chat.title in groups:
-            print(f"New message from {chat.title}")
-            message_text = event.text
-            message_text = message_text.replace("*", "")
-            print(event)
-            trade = MessageDecomposer(session, message_text)
-            if trade is not None and event.message.date > run_time:
-                try:
-                    entryPoint = float(get_current_price(session, trade.pair))
-                    trade.enterPosition(entryPoint)
-                    balance_percentage = float(params[groups.index(chat.title)][0])
-                    tp = float(params[groups.index(chat.title)][1])
-                    sl = float(params[groups.index(chat.title)][2])
-                    suma = wallet_balance * (balance_percentage / 100)
-                    trade.calcCustomBounds(tp / 100, sl / 100)
-                    open_position(session, suma, trade)
-                except IndexError as e:
-                    print('This coin does not exist on ByBit futures')
-
+        try:
+            if chat.title in groups:
+                print(f"New trade from {chat.title}")
+                message_text = event.text
+                message_text = message_text.replace("*", "")
+                print(event)
+                trade = MessageDecomposer(session, message_text)
+                if trade is not None and event.message.date > run_time:
+                    try:
+                        entryPoint = float(get_current_price(session, trade.pair))
+                        trade.enterPosition(entryPoint)
+                        balance_percentage = float(params[groups.index(chat.title)][0])
+                        tp = float(params[groups.index(chat.title)][1])
+                        sl = float(params[groups.index(chat.title)][2])
+                        suma = wallet_balance * (balance_percentage / 100)
+                        trade.calcCustomBounds(tp / 100, sl / 100)
+                        open_position(session, suma, trade)
+                    except IndexError as e:
+                        print('This coin does not exist on ByBit futures')
+        except AttributeError as e:
+            print('Message from a user')
 
     async def main():
         await client.start()
