@@ -57,10 +57,54 @@ def get_all_coins(session):
             coins.append(coin['baseCoin'])
     return set(coins)
 
-def open_position(session, suma, trade):
+def get_position_info(session, trade):
+    response = session.get_positions(
+        category="linear",
+        symbol=trade.pair,
+    )
+    return response
+
+def run_updater(session, group, trade):
+    hit_checkpoints = []
+    try:
+        while len(hit_checkpoints) != len(group.checkpoints):
+            position_info = get_position_info(session, trade)
+            current_roi = position_info['result']['list'][0]['unrealisedPnl']
+            roi_percentage = float(current_roi)/(trade.entrySum/25) * 100
+            for key, value in group.checkpoints.items():
+                if key not in hit_checkpoints:
+
+                    if 0 > float(key) > roi_percentage:
+                        trade.calcCustomBounds(float(value[0]) / 100, float(value[1]) / 100)
+                        set_tp_sl(session, trade.pair, trade.take_profit_custom, trade.stop_loss_custom)
+                        hit_checkpoints.append(key)
+                        print(f"Hit checkpoint at {key} and changed tp to {trade.take_profit_custom} and sl to {trade.stop_loss_custom}")
+
+                    elif 0 < float(key) < roi_percentage:
+                        trade.calcCustomBounds(float(value[0]) / 100, float(value[1]) / 100)
+                        set_tp_sl(session, trade.pair, trade.take_profit_custom, trade.stop_loss_custom)
+                        hit_checkpoints.append(key)
+                        print(f"Hit checkpoint at {key} and changed tp to {trade.take_profit_custom} and sl to {trade.stop_loss_custom}")
+    except ValueError as e:
+        print(f"Trade on {trade.pair} closed")
+
+
+def set_tp_sl(session, pair, tp, sl):
+    session.set_trading_stop(
+        category="linear",
+        symbol=pair,
+        takeProfit=round(tp, 5),
+        stopLoss=round(sl, 5),
+        tpTriggerBy="MarkPrice",  # Use MarkPrice to trigger TP
+        slTriggerBy="MarkPrice",  # Use MarkPrice to trigger SL
+        tpslMode="Full",  # Apply both TP and SL
+        positionIdx=0  # Apply for both long and short positions
+    )
+
+def open_position(session, trade):
 
     current_price = float(get_current_price(session, trade.pair))
-    quantity = int(suma / current_price)
+    quantity = int(trade.entrySum / current_price)
     try:
         set_leverage(session, trade.pair, trade.leverage)
     except InvalidRequestError as e:
@@ -77,15 +121,5 @@ def open_position(session, suma, trade):
         qty=quantity,
         orderFilter="Order",
     )
-    print(trade.take_profit_custom, trade.stop_loss_custom)
     print(place_order_response)
-    print(session.set_trading_stop(
-        category="linear",
-        symbol=trade.pair,
-        takeProfit=round(trade.take_profit_custom, 5),
-        stopLoss=round(trade.stop_loss_custom, 5),
-        tpTriggerBy="MarkPrice",  # Use MarkPrice to trigger TP
-        slTriggerBy="MarkPrice",  # Use MarkPrice to trigger SL
-        tpslMode="Full",  # Apply both TP and SL
-        positionIdx=0  # Apply for both long and short positions
-    ))
+    set_tp_sl(session, trade.pair, trade.take_profit_custom, trade.stop_loss_custom)
