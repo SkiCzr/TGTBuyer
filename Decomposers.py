@@ -25,8 +25,9 @@ def MessageDecomposer(session,message):
         if coin != 'USDT' and coin not in 'SHORT' and coin not in 'LONG':
             if coin in message:
 
-                pattern = fr'(?<![\w.]){coin}(?![\w.])|(?<![\w.]){coin}USDT(?![\w.])'
-                if re.search(pattern, message):
+                pattern = fr'(?<![\w.]){coin}(?![\w.])'
+                pattern1 = fr'(?<![\w.]){coin}USDT(?![\w.])'
+                if re.search(pattern, message) or re.search(pattern1, message):
                     print(coin)
                     foundCoin = coin
 
