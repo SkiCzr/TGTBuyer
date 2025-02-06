@@ -17,11 +17,19 @@ from pybit.unified_trading import HTTP
 # API_SECRET = "auZ8y7DgBw6opDtXnWHnkSJXWBuQNKFnUJHB"
 
 def get_current_price(session, pair):
-    tickers = session.get_tickers(
-        category="linear",
-        symbol=pair,
-    )
+    try:
+        tickers = session.get_tickers(
+            category="spot",
+            symbol=pair,
+        )
+    except InvalidRequestError as e:
+        tickers = session.get_tickers(
+            category="linear",
+            symbol=pair,
+        )
     return tickers["result"]["list"][0]["lastPrice"]
+
+
 def get_wallet_balance(session, coin):
     print(session.get_wallet_balance(
         accountType="UNIFIED",
@@ -31,6 +39,8 @@ def get_wallet_balance(session, coin):
         accountType="UNIFIED",
         coin=coin,
     )['result']['list'][0]['coin'][0]['walletBalance'])
+
+
 def open_session(API_KEY, API_SECRET):
     session = HTTP(
         demo=True,
@@ -52,8 +62,14 @@ def get_all_coins(session):
     coin_list = session.get_instruments_info(
         category="spot",
     )['result']['list']
+    coin_list1 = session.get_instruments_info(
+        category="linear",
+    )['result']['list']
     for coin in coin_list:
-        if len(coin['baseCoin']) > 1:
+        if(len(coin['baseCoin']) > 1):
+            coins.append(coin['baseCoin'])
+    for coin in coin_list1:
+        if(len(coin['baseCoin']) > 1):
             coins.append(coin['baseCoin'])
     return set(coins)
 
