@@ -12,16 +12,20 @@ def MessageDecomposer(session,message):
         return None
     #Finding info about the TradeExamples by pattern matching
     try:
-        trade_type = re.search(fr"(?<!\w)(SHORT|LONG)(?!\w)", message).group(0)
+        trade_type = re.search(fr"(?<!\w)(SHORT|LONG|ЛОНГ|ШОРТ)(?!\w)", message).group(0)
     except AttributeError as e:
         print('Type of position not defined')
     coins = get_all_coins(session)
     foundCoin = '0'
+    if trade_type == "ШОРТ":
+        trade_type = "SHORT"
+    if trade_type == "ЛОНГ":
+        trade_type = "LONG"
     for coin in coins:
         if coin != 'USDT' and coin not in 'SHORT' and coin not in 'LONG':
             if coin in message:
 
-                pattern = fr'(?<![\w.]){coin}(?![\w.])'
+                pattern = fr'(?<![\w.]){coin}(?![\w.])|(?<![\w.]){coin}USDT(?![\w.])'
                 if re.search(pattern, message):
                     print(coin)
                     foundCoin = coin

@@ -66,6 +66,7 @@ def get_position_info(session, trade):
 
 def run_updater(session, group, trade):
     hit_checkpoints = []
+    print(f"Updater for {trade.pair} is running")
     try:
         while len(hit_checkpoints) != len(group.checkpoints):
             position_info = get_position_info(session, trade)

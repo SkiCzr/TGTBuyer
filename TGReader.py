@@ -21,13 +21,13 @@ def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, gro
         chat = await event.get_chat()
         try:
             if chat.title in groups:
-                print(f"New trade from {chat.title}")
+
                 message_text = event.text
                 message_text = message_text.replace("*", "")
-                print(event)
                 trade = MessageDecomposer(session, message_text)
                 if trade is not None and event.message.date > run_time:
                     try:
+                        print(f"New trade from {chat.title}")
                         group = groups[chat.title]
                         balance_percentage = float(group.balancePercentage)
                         entryPoint = float(get_current_price(session, trade.pair))
