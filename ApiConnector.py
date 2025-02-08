@@ -66,10 +66,10 @@ def get_all_coins(session):
         category="linear",
     )['result']['list']
     for coin in coin_list:
-        if(len(coin['baseCoin']) > 1):
+        if len(coin['baseCoin']) > 1:
             coins.append(coin['baseCoin'])
     for coin in coin_list1:
-        if(len(coin['baseCoin']) > 1):
+        if len(coin['baseCoin']) > 1:
             coins.append(coin['baseCoin'])
     return set(coins)
 
@@ -130,12 +130,13 @@ def open_position(session, trade):
         side = "Sell"
     else:
         side = "Buy"
+    print("Quantity:", quantity)
     place_order_response = session.place_order(
         category="linear",
         symbol=trade.pair,
         side=side,
         orderType="Market",
-        qty=quantity,
+        qty=str(quantity),
         orderFilter="Order",
     )
     print(place_order_response)
