@@ -28,7 +28,6 @@ def MessageDecomposer(session,message):
                 pattern = fr'(?<![\w.]){coin}(?![\w.])'
                 pattern1 = fr'(?<![\w.]){coin}USDT(?![\w.])'
                 if re.search(pattern, message) or re.search(pattern1, message):
-                    print(coin)
                     foundCoin = coin
 
     if foundCoin == '0':
@@ -37,4 +36,4 @@ def MessageDecomposer(session,message):
         pair = foundCoin+'USDT'
 
     # Returning the newly created MyTrade object from the info in the message
-    return MyTrade(trade_type, pair, 25)
+    return MyTrade(trade_type, pair)

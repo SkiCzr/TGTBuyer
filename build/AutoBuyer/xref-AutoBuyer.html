@@ -18,8 +18,7 @@
   <a target="code" href="///C:/Users/vinte/Desktop/Personal%20Projects/TGTBuyer/AutoBuyer.py" type="text/plain"><tt>AutoBuyer.py</tt></a>
 <span class="moduletype">Script</span>  <div class="import">
 imports:
-    <a href="#FileAutoBuyer">FileAutoBuyer</a>
- &#8226;   <a href="#GroupParams">GroupParams</a>
+    <a href="#GroupParams">GroupParams</a>
  &#8226;   <a href="#TGReader">TGReader</a>
  &#8226;   <a href="#_collections_abc">_collections_abc</a>
  &#8226;   <a href="#_weakrefset">_weakrefset</a>
@@ -156,6 +155,7 @@ imports:
  &#8226;   <a href="#genericpath">genericpath</a>
  &#8226;   <a href="#heapq">heapq</a>
  &#8226;   <a href="#io">io</a>
+ &#8226;   <a href="#json">json</a>
  &#8226;   <a href="#keyword">keyword</a>
  &#8226;   <a href="#linecache">linecache</a>
  &#8226;   <a href="#locale">locale</a>
@@ -480,8 +480,11 @@ imported by:
   <a target="code" href="///C:/Users/vinte/Desktop/Personal%20Projects/TGTBuyer/ApiConnector.py" type="text/plain"><tt>ApiConnector</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#hashlib">hashlib</a>
+    <a href="#asyncio">asyncio</a>
+ &#8226;   <a href="#decimal">decimal</a>
+ &#8226;   <a href="#hashlib">hashlib</a>
  &#8226;   <a href="#hmac">hmac</a>
+ &#8226;   <a href="#math">math</a>
  &#8226;   <a href="#pybit.exceptions">pybit.exceptions</a>
  &#8226;   <a href="#pybit.unified_trading">pybit.unified_trading</a>
  &#8226;   <a href="#requests">requests</a>
@@ -2052,33 +2055,11 @@ imported by:
 </div>
 
 <div class="node">
-  <a name="FileAutoBuyer"></a>
-  <a target="code" href="///C:/Users/vinte/Desktop/Personal%20Projects/TGTBuyer/FileAutoBuyer.py" type="text/plain"><tt>FileAutoBuyer</tt></a>
-<span class="moduletype">SourceModule</span>  <div class="import">
-imports:
-    <a href="#GroupParams">GroupParams</a>
- &#8226;   <a href="#TGReader">TGReader</a>
- &#8226;   <a href="#copy">copy</a>
- &#8226;   <a href="#tkinter">tkinter</a>
- &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
- &#8226;   <a href="#traceback">traceback</a>
-
-  </div>
-  <div class="import">
-imported by:
-    <a href="#AutoBuyer.py">AutoBuyer.py</a>
-
-  </div>
-
-</div>
-
-<div class="node">
   <a name="GroupParams"></a>
   <a target="code" href="///C:/Users/vinte/Desktop/Personal%20Projects/TGTBuyer/GroupParams.py" type="text/plain"><tt>GroupParams</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imported by:
     <a href="#AutoBuyer.py">AutoBuyer.py</a>
- &#8226;   <a href="#FileAutoBuyer">FileAutoBuyer</a>
 
   </div>
 
@@ -2124,7 +2105,6 @@ imported by:
 imports:
     <a href="#ApiConnector">ApiConnector</a>
  &#8226;   <a href="#Decomposers">Decomposers</a>
- &#8226;   <a href="#Trade">Trade</a>
  &#8226;   <a href="#asyncio">asyncio</a>
  &#8226;   <a href="#datetime">datetime</a>
  &#8226;   <a href="#pytz">pytz</a>
@@ -2136,7 +2116,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#AutoBuyer.py">AutoBuyer.py</a>
- &#8226;   <a href="#FileAutoBuyer">FileAutoBuyer</a>
 
   </div>
 
@@ -2146,9 +2125,16 @@ imported by:
   <a name="Trade"></a>
   <a target="code" href="///C:/Users/vinte/Desktop/Personal%20Projects/TGTBuyer/Trade.py" type="text/plain"><tt>Trade</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#datetime">datetime</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#re">re</a>
+
+  </div>
+  <div class="import">
 imported by:
     <a href="#Decomposers">Decomposers</a>
- &#8226;   <a href="#TGReader">TGReader</a>
 
   </div>
 
@@ -3573,7 +3559,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#TGReader">TGReader</a>
+    <a href="#ApiConnector">ApiConnector</a>
+ &#8226;   <a href="#TGReader">TGReader</a>
  &#8226;   <a href="#asyncio">asyncio</a>
  &#8226;   <a href="#asyncio.base_events">asyncio.base_events</a>
  &#8226;   <a href="#asyncio.base_futures">asyncio.base_futures</a>
@@ -5678,7 +5665,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#AutoBuyer.py">AutoBuyer.py</a>
- &#8226;   <a href="#FileAutoBuyer">FileAutoBuyer</a>
  &#8226;   <a href="#_sre">_sre</a>
  &#8226;   <a href="#argparse">argparse</a>
  &#8226;   <a href="#collections">collections</a>
@@ -6003,6 +5989,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#TGReader">TGReader</a>
+ &#8226;   <a href="#Trade">Trade</a>
  &#8226;   <a href="#_strptime">_strptime</a>
  &#8226;   <a href="#calendar">calendar</a>
  &#8226;   <a href="#email.utils">email.utils</a>
@@ -6096,7 +6083,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#fractions">fractions</a>
+    <a href="#ApiConnector">ApiConnector</a>
+ &#8226;   <a href="#fractions">fractions</a>
  &#8226;   <a href="#setuptools.config._validate_pyproject.fastjsonschema_validations">setuptools.config._validate_pyproject.fastjsonschema_validations</a>
  &#8226;   <a href="#statistics">statistics</a>
  &#8226;   <a href="#xmlrpc.client">xmlrpc.client</a>
@@ -11162,7 +11150,9 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#charset_normalizer.models">charset_normalizer.models</a>
+    <a href="#AutoBuyer.py">AutoBuyer.py</a>
+ &#8226;   <a href="#Trade">Trade</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
  &#8226;   <a href="#json.decoder">json.decoder</a>
  &#8226;   <a href="#json.encoder">json.encoder</a>
  &#8226;   <a href="#json.scanner">json.scanner</a>
@@ -11429,7 +11419,8 @@ imported by:
   <a name="math"></a>
   <tt>math</tt> <span class="moduletype"><i>(builtin module)</i></span>  <div class="import">
 imported by:
-    <a href="#Crypto.Util.number">Crypto.Util.number</a>
+    <a href="#ApiConnector">ApiConnector</a>
+ &#8226;   <a href="#Crypto.Util.number">Crypto.Util.number</a>
  &#8226;   <a href="#_pydatetime">_pydatetime</a>
  &#8226;   <a href="#_pydecimal">_pydecimal</a>
  &#8226;   <a href="#asyncio.windows_events">asyncio.windows_events</a>
@@ -12504,6 +12495,7 @@ imported by:
  &#8226;   <a href="#Crypto.Random">Crypto.Random</a>
  &#8226;   <a href="#Crypto.Util._file_system">Crypto.Util._file_system</a>
  &#8226;   <a href="#Crypto.Util._raw_api">Crypto.Util._raw_api</a>
+ &#8226;   <a href="#Trade">Trade</a>
  &#8226;   <a href="#_aix_support">_aix_support</a>
  &#8226;   <a href="#_distutils_hack">_distutils_hack</a>
  &#8226;   <a href="#_sitebuiltins">_sitebuiltins</a>
@@ -15496,6 +15488,7 @@ imported by:
  &#8226;   <a href="#Crypto.Protocol.KDF">Crypto.Protocol.KDF</a>
  &#8226;   <a href="#Decomposers">Decomposers</a>
  &#8226;   <a href="#TGReader">TGReader</a>
+ &#8226;   <a href="#Trade">Trade</a>
  &#8226;   <a href="#_markupbase">_markupbase</a>
  &#8226;   <a href="#_pydecimal">_pydecimal</a>
  &#8226;   <a href="#_sre">_sre</a>
@@ -26169,7 +26162,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#AutoBuyer.py">AutoBuyer.py</a>
- &#8226;   <a href="#FileAutoBuyer">FileAutoBuyer</a>
  &#8226;   <a href="#tkinter.commondialog">tkinter.commondialog</a>
  &#8226;   <a href="#tkinter.constants">tkinter.constants</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
@@ -26222,7 +26214,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#AutoBuyer.py">AutoBuyer.py</a>
- &#8226;   <a href="#FileAutoBuyer">FileAutoBuyer</a>
  &#8226;   <a href="#tkinter">tkinter</a>
 
   </div>
@@ -26390,7 +26381,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#AutoBuyer.py">AutoBuyer.py</a>
- &#8226;   <a href="#FileAutoBuyer">FileAutoBuyer</a>
  &#8226;   <a href="#_distutils_hack">_distutils_hack</a>
  &#8226;   <a href="#asyncio.base_events">asyncio.base_events</a>
  &#8226;   <a href="#asyncio.base_tasks">asyncio.base_tasks</a>

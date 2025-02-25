@@ -1,6 +1,10 @@
+import asyncio
+import math
 import time
 import hashlib
 import hmac
+from decimal import Decimal
+
 import requests
 from pybit.exceptions import InvalidRequestError
 from pybit.unified_trading import HTTP
@@ -29,6 +33,11 @@ def get_current_price(session, pair):
         )
     return tickers["result"]["list"][0]["lastPrice"]
 
+def get_last_closed(session, n):
+    return session.get_closed_pnl(
+    category="linear",
+    limit=n,
+    )['result']['list']
 
 def get_wallet_balance(session, coin):
     print(session.get_wallet_balance(
@@ -53,6 +62,21 @@ def set_leverage(session, pair, leverage):
     print(session.set_leverage(
         category="linear",
         symbol=pair,
+        buyLeverage=str(leverage),
+        sellLeverage=str(leverage),
+    ))
+
+def set_margin_mode(session, pair, leverage, margin_mode):
+    print(margin_mode)
+    if margin_mode == "cross":
+        bin_margin = 0
+    else:
+        bin_margin = 1
+
+    print(session.switch_margin_mode(
+        category="linear",
+        symbol=pair,
+        tradeMode=bin_margin,
         buyLeverage=str(leverage),
         sellLeverage=str(leverage),
     ))
@@ -83,28 +107,78 @@ def get_position_info(session, trade):
 def run_updater(session, group, trade):
     hit_checkpoints = []
     print(f"Updater for {trade.pair} is running")
+    times_sold = 0
+    current_sum = trade.entrySum
     try:
         while len(hit_checkpoints) != len(group.checkpoints):
+
             position_info = get_position_info(session, trade)
             current_roi = position_info['result']['list'][0]['unrealisedPnl']
-            roi_percentage = float(current_roi)/(trade.entrySum/25) * 100
-            for key, value in group.checkpoints.items():
-                if key not in hit_checkpoints:
+            roi_percentage = float(current_roi)/(current_sum/trade.leverage) * 100
 
+            for key, value in group.checkpoints.items():
+
+                if key not in hit_checkpoints:
                     if 0 > float(key) > roi_percentage:
                         trade.calcCustomBounds(float(value[0]) / 100, float(value[1]) / 100)
                         set_tp_sl(session, trade.pair, trade.take_profit_custom, trade.stop_loss_custom)
+
+                        if value[2] != "0":
+                            print(f"{value[2]} % of {trade.pair} was sold when price hit {key}")
+                            sellPosition(session,trade, float(value[2]) / 100)
+                            times_sold += 1
+                            current_sum = current_sum - (trade.entrySum * float(value[2]) / 100)
+
+
                         hit_checkpoints.append(key)
                         print(f"Hit checkpoint at {key} and changed tp to {trade.take_profit_custom} and sl to {trade.stop_loss_custom}")
 
                     elif 0 < float(key) < roi_percentage:
+
                         trade.calcCustomBounds(float(value[0]) / 100, float(value[1]) / 100)
                         set_tp_sl(session, trade.pair, trade.take_profit_custom, trade.stop_loss_custom)
+
+                        if value[2] != "0":
+                            print(f"{value[2]} % of {trade.pair} was sold when price hit {key}")
+                            sellPosition(session,trade, float(value[2]) / 100)
+                            times_sold += 1
+                            current_sum = current_sum - (trade.entrySum * float(value[2]) / 100)
+
+
                         hit_checkpoints.append(key)
                         print(f"Hit checkpoint at {key} and changed tp to {trade.take_profit_custom} and sl to {trade.stop_loss_custom}")
-    except ValueError as e:
+
+    except ValueError or ZeroDivisionError as e:
+        times_sold += 1
         print(f"Trade on {trade.pair} closed")
 
+    time.sleep(3)
+    pnlRecords = get_last_closed(session, 20)
+    percentage_sum = 0
+    pnlRecord = pnlRecords[0]
+    parts_number = times_sold
+    for rec in pnlRecords:
+        if rec['symbol'] == trade.pair:
+            percentage_sum += trade.calculate_profit(
+            float(rec['avgEntryPrice']),
+            float(rec['avgExitPrice']))
+            times_sold -= 1
+            pnlRecord = rec
+        if times_sold == 0:
+            break
+    positionProfit = percentage_sum/parts_number
+    trade.save_trade(group, positionProfit, pnlRecord)
+
+
+
+def sellPosition(session, trade, qty_percent):
+    if trade.trade_type == "SHORT":
+        action = "Buy"
+    else:
+        action = "Sell"
+    sellQty = adjust_qty(session, trade.pair, qty_percent * trade.quantity)
+    print(sellQty)
+    post_order(session, trade.pair, sellQty, action, "Market", 0)
 
 def set_tp_sl(session, pair, tp, sl):
     session.set_trading_stop(
@@ -118,26 +192,66 @@ def set_tp_sl(session, pair, tp, sl):
         positionIdx=0  # Apply for both long and short positions
     )
 
-def open_position(session, trade):
+def get_order_limit(session, pair):
+    coin_info = session.get_instruments_info(
+        category="linear",
+        symbol=pair
+    )['result']['list']
+    return coin_info[0]['lotSizeFilter']['maxMktOrderQty']
+
+def adjust_qty(session, pair, qty):
+    coin_info = session.get_instruments_info(
+        category="linear",
+        symbol=pair
+    )['result']['list']
+    step_size = Decimal(coin_info[0]['lotSizeFilter']['qtyStep'])
+    return math.floor(Decimal(qty) / step_size) * step_size
+
+def post_order(session, pair, qty, side, orderType, price):
+    orderCap = int(float(get_order_limit(session, pair)))
+
+    while qty > 0:
+        if qty >= orderCap:
+            session.place_order(
+                category="linear",
+                symbol=pair,
+                side=side,
+                orderType=orderType,
+                qty=orderCap,
+                price=price,
+                orderFilter="Order",
+            )
+        else:
+            session.place_order(
+                category="linear",
+                symbol=pair,
+                side=side,
+                orderType=orderType,
+                qty=qty,
+                price=price,
+                orderFilter="Order",
+            )
+        qty -= orderCap
+
+
+def open_position(session, trade, group):
 
     current_price = float(get_current_price(session, trade.pair))
-    quantity = int(trade.entrySum / current_price)
+    quantity = adjust_qty(session, trade.pair, trade.entrySum / current_price)
     try:
         set_leverage(session, trade.pair, trade.leverage)
     except InvalidRequestError as e:
         print("Leverage not changed")
+
+    # try:
+    #     set_margin_mode(session, trade.pair, trade.leverage, group.marginType)
+    # except InvalidRequestError as e:
+    #     print("Margin type not changed")
+
     if trade.trade_type == "SHORT":
         side = "Sell"
     else:
         side = "Buy"
-    print("Quantity:", quantity)
-    place_order_response = session.place_order(
-        category="linear",
-        symbol=trade.pair,
-        side=side,
-        orderType="Market",
-        qty=str(quantity),
-        orderFilter="Order",
-    )
-    print(place_order_response)
+
+    post_order(session, trade.pair, quantity, side, "Market", 0)
     set_tp_sl(session, trade.pair, trade.take_profit_custom, trade.stop_loss_custom)

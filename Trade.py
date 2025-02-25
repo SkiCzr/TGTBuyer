@@ -1,10 +1,16 @@
+import json
+import os
+from datetime import datetime
+import re
+
 
 class MyTrade:
-    def __init__(self, trade_type, pair, leverage):
+    def __init__(self, trade_type, pair):
         self.trade_type = trade_type
         self.pair = pair
-        self.leverage = leverage
+        self.leverage = 0
         self.entryPrice = 0
+        self.quantity = 0
         self.take_profit1 = 0
         self.take_profit2 = 0
         self.take_profit3 = 0
@@ -22,6 +28,7 @@ class MyTrade:
     def enterPosition(self, entryPrice, entrySum):
         self.entryPrice = entryPrice
         self.entrySum = entrySum
+        self.quantity = entrySum/entryPrice
         multiplier = 1 if self.trade_type == 'LONG' else -1
 
         self.take_profit1 = self.calcBound(multiplier * 0.10)
@@ -40,3 +47,58 @@ class MyTrade:
 
     def calcBound(self, percentage):
         return self.entryPrice * (1 + (percentage / self.leverage))
+
+    def calculate_profit(self, entry: float, exit: float):
+        self.entryPrice = entry
+        print("Entry:",entry)
+        print("Exit:", exit)
+
+        if self.trade_type == "LONG":
+            percent_change = ((exit - entry) / entry) * 100
+        elif self.trade_type == "SHORT":
+            percent_change = ((entry - exit) / entry) * 100
+        else:
+            raise ValueError("Invalid position type. Use 'LONG' or 'SHORT'.")
+
+        return round(percent_change * self.leverage, 5)
+
+
+    def save_trade(self, group, profit, pnl_record, folder="TradingStats"):
+        # Ensure the folder exists
+        os.makedirs(folder, exist_ok=True)
+        current_time = datetime.now()
+        entryPoint = pnl_record['avgEntryPrice']
+        exitPoint = pnl_record['avgExitPrice']
+        timestamp = int(pnl_record['updatedTime'])/1000
+        # Define file path inside the folder
+        clean_name = re.sub(r'[<>:"/\\|?*]', "_", group.name)
+        filename = os.path.join(folder, f"{clean_name}.json")
+
+        # Check if the file exists and read existing data
+        if os.path.exists(filename):
+            with open(filename, "r") as file:
+                try:
+                    data = json.load(file)
+                except json.JSONDecodeError:
+                    data = {"trades": [], "overall_profit%": 0}
+        else:
+            data = {"trades": [], "overall_profit%": 0}
+
+        # Update overall profit
+        data["overall_profit%"] += profit
+
+        # Add new trade
+        trade_data = {
+            "pair": self.pair,
+            "entryPrice": entryPoint,
+            "exitPrice": exitPoint,
+            "profit%": profit,
+            "timestamp": datetime.fromtimestamp(timestamp).strftime("%d-%m-%Y %H:%M:%S")
+        }
+        data["trades"].append(trade_data)
+
+        # Save back to the file
+        with open(filename, "w") as file:
+            json.dump(data, file, indent=4)
+
+        print(f"Trade saved in {filename}. Overall profit: {data['overall_profit%']:.2f}%")

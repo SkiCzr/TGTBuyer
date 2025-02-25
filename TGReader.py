@@ -1,17 +1,18 @@
 import asyncio
 import re
 from datetime import datetime
-
 from telethon import TelegramClient, events
 import pytz
 from ApiConnector import open_session, open_position, get_current_price, get_wallet_balance, run_updater
 from Decomposers import MessageDecomposer
-from Trade import MyTrade
+
+
 
 # Function to create and run a Telegram client that listens to messages
 def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, groups):
     run_time = datetime.now(pytz.utc)
     client = TelegramClient("SESH", int(api_id), api_hash)
+    print(api_id, api_hash)
     session = open_session(bybit_api_key, bybit_api_secret)
     wallet_balance = get_wallet_balance(session, 'USDT')
     print("Wallet balance", wallet_balance)
@@ -24,20 +25,25 @@ def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, gro
 
                 message_text = event.text
                 message_text = message_text.replace("*", "")
+                print(f"[{datetime.now(pytz.utc)}] New message from", chat.title)
                 trade = MessageDecomposer(session, message_text)
                 if trade is not None and event.message.date > run_time:
                     try:
-                        print(f"New trade from {chat.title}")
+                        print(f"[{datetime.now(pytz.utc)}] New trade from {chat.title}")
                         group = groups[chat.title]
                         balance_percentage = float(group.balancePercentage)
+                        trade.leverage = group.tradeLeverage
                         entryPoint = float(get_current_price(session, trade.pair))
-                        suma = wallet_balance * (balance_percentage / 100) * 25
+                        suma = wallet_balance * (balance_percentage / 100) * trade.leverage
                         trade.enterPosition(entryPoint, suma)
                         tp = float(group.initialTakeProfit)
                         sl = float(group.initialStopLoss)
                         trade.calcCustomBounds(tp / 100, sl / 100)
-                        open_position(session, trade)
+
+                        open_position(session, trade, group)
+                        print(f"{trade.trade_type} position opened on {trade.pair}")
                         await asyncio.to_thread(run_updater, session, group, trade)
+
                     except IndexError as e:
                         print('This coin does not exist on ByBit futures')
         except AttributeError as e:
