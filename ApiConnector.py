@@ -9,16 +9,6 @@ import requests
 from pybit.exceptions import InvalidRequestError
 from pybit.unified_trading import HTTP
 
-# Telegram information for message reading
-# api_id = '29823304'
-# api_hash = 'd86272c7a21d1901be5b2d9b29233028'
-# Cezar API key and secret
-# API_KEY = "32fcMdMPVeuJJLliGM"
-# API_SECRET = "apC8QGH2jllfotbJDOc55m3cBULbKrT19wZb"
-
-# Vlad API key and secret
-# API_KEY = "MWXxy4WsdtdfPX4z22"
-# API_SECRET = "auZ8y7DgBw6opDtXnWHnkSJXWBuQNKFnUJHB"
 
 def get_current_price(session, pair):
     try:
@@ -106,8 +96,10 @@ def get_position_info(session, trade):
 
 def run_updater(session, group, trade):
     hit_checkpoints = []
+    percentage_sum = 0
+    remaining_percentage = 100
+    pnl_record = {}
     print(f"Updater for {trade.pair} is running")
-    times_sold = 0
     current_sum = trade.entrySum
     try:
         while len(hit_checkpoints) != len(group.checkpoints):
@@ -126,7 +118,10 @@ def run_updater(session, group, trade):
                         if value[2] != "0":
                             print(f"{value[2]} % of {trade.pair} was sold when price hit {key}")
                             sellPosition(session,trade, float(value[2]) / 100)
-                            times_sold += 1
+                            percentage_sum = percentage_sum + ((float(value[2]) / 100) * float(key))
+                            print("Added:", ((float(value[2]) / 100) * float(key)))
+                            remaining_percentage = remaining_percentage - float(value[2])
+                            pnl_record = get_last_closed(session, 1)[0]
                             current_sum = current_sum - (trade.entrySum * float(value[2]) / 100)
 
 
@@ -141,7 +136,10 @@ def run_updater(session, group, trade):
                         if value[2] != "0":
                             print(f"{value[2]} % of {trade.pair} was sold when price hit {key}")
                             sellPosition(session,trade, float(value[2]) / 100)
-                            times_sold += 1
+                            percentage_sum = percentage_sum + ((float(value[2]) / 100) * float(key))
+                            print("Added:", ((float(value[2]) / 100) * float(key)))
+                            remaining_percentage = remaining_percentage - float(value[2])
+                            pnl_record = get_last_closed(session, 1)[0]
                             current_sum = current_sum - (trade.entrySum * float(value[2]) / 100)
 
 
@@ -149,25 +147,16 @@ def run_updater(session, group, trade):
                         print(f"Hit checkpoint at {key} and changed tp to {trade.take_profit_custom} and sl to {trade.stop_loss_custom}")
 
     except ValueError or ZeroDivisionError as e:
-        times_sold += 1
         print(f"Trade on {trade.pair} closed")
+        time.sleep(3)
+        pnl_record = get_last_closed(session, 1)[0]
+        total_profit = trade.calculate_profit(
+            float(pnl_record['avgEntryPrice']),
+            float(pnl_record['avgExitPrice']))
+        print("Added:", (remaining_percentage/100))
+        percentage_sum += total_profit * (remaining_percentage/100)
 
-    time.sleep(3)
-    pnlRecords = get_last_closed(session, 20)
-    percentage_sum = 0
-    pnlRecord = pnlRecords[0]
-    parts_number = times_sold
-    for rec in pnlRecords:
-        if rec['symbol'] == trade.pair:
-            percentage_sum += trade.calculate_profit(
-            float(rec['avgEntryPrice']),
-            float(rec['avgExitPrice']))
-            times_sold -= 1
-            pnlRecord = rec
-        if times_sold == 0:
-            break
-    positionProfit = percentage_sum/parts_number
-    trade.save_trade(group, positionProfit, pnlRecord)
+    trade.save_trade(group, percentage_sum, pnl_record)
 
 
 

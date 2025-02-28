@@ -68,7 +68,6 @@ class MyTrade:
         os.makedirs(folder, exist_ok=True)
         current_time = datetime.now()
         entryPoint = pnl_record['avgEntryPrice']
-        exitPoint = pnl_record['avgExitPrice']
         timestamp = int(pnl_record['updatedTime'])/1000
         # Define file path inside the folder
         clean_name = re.sub(r'[<>:"/\\|?*]', "_", group.name)
@@ -91,7 +90,6 @@ class MyTrade:
         trade_data = {
             "pair": self.pair,
             "entryPrice": entryPoint,
-            "exitPrice": exitPoint,
             "profit%": profit,
             "timestamp": datetime.fromtimestamp(timestamp).strftime("%d-%m-%Y %H:%M:%S")
         }

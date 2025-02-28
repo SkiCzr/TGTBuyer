@@ -47,7 +47,7 @@ def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, gro
                     except IndexError as e:
                         print('This coin does not exist on ByBit futures')
         except AttributeError as e:
-            print('Message from a user')
+            print(f'[{datetime.now(pytz.utc)}] Message from a user')
 
     async def main():
         await client.start()
