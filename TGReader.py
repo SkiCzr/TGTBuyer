@@ -3,7 +3,8 @@ import re
 from datetime import datetime
 from telethon import TelegramClient, events
 import pytz
-from ApiConnector import open_session, open_position, get_current_price, get_wallet_balance, run_updater
+from ApiConnector import open_session, open_position, get_current_price, get_wallet_balance, run_updater, \
+    get_max_leverage, get_risk_limit
 from Decomposers import MessageDecomposer
 
 
@@ -32,9 +33,17 @@ def run_telegram_listener(api_id, api_hash, bybit_api_key, bybit_api_secret, gro
                         print(f"[{datetime.now(pytz.utc)}] New trade from {chat.title}")
                         group = groups[chat.title]
                         balance_percentage = float(group.balancePercentage)
-                        trade.leverage = group.tradeLeverage
+                        risk_limit = get_risk_limit(session, trade.pair)
+                        max_leverage = float(get_max_leverage(session, trade.pair))
+                        if group.tradeLeverage > max_leverage:
+                            trade.leverage = max_leverage
+                        else:
+                            trade.leverage = group.tradeLeverage
+                        print(max_leverage, trade.leverage)
                         entryPoint = float(get_current_price(session, trade.pair))
                         suma = wallet_balance * (balance_percentage / 100) * trade.leverage
+                        if suma >= risk_limit:
+                            suma = risk_limit - (0.05 * risk_limit)
                         trade.enterPosition(entryPoint, suma)
                         tp = float(group.initialTakeProfit)
                         sl = float(group.initialStopLoss)

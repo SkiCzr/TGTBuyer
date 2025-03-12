@@ -8,6 +8,7 @@ from decimal import Decimal
 import requests
 from pybit.exceptions import InvalidRequestError
 from pybit.unified_trading import HTTP
+from unicodedata import decimal
 
 
 def get_current_price(session, pair):
@@ -56,6 +57,19 @@ def set_leverage(session, pair, leverage):
         sellLeverage=str(leverage),
     ))
 
+def get_max_leverage(session, pair):
+    return session.get_risk_limit(
+            category="linear",
+            symbol=pair,
+            )['result']['list'][0]['maxLeverage']
+
+def get_risk_limit(session, pair):
+    return float(session.get_risk_limit(
+            category="linear",
+            symbol="IMXUSDT",
+            )['result']['list'][0]['riskLimitValue'])
+
+
 def set_margin_mode(session, pair, leverage, margin_mode):
     print(margin_mode)
     if margin_mode == "cross":
@@ -96,13 +110,13 @@ def get_position_info(session, trade):
 
 def run_updater(session, group, trade):
     hit_checkpoints = []
+    current_roi = 0
     percentage_sum = 0
     remaining_percentage = 100
-    pnl_record = {}
     print(f"Updater for {trade.pair} is running")
     current_sum = trade.entrySum
     try:
-        while len(hit_checkpoints) != len(group.checkpoints):
+        while len(hit_checkpoints) != len(group.checkpoints) and remaining_percentage > 0:
 
             position_info = get_position_info(session, trade)
             current_roi = position_info['result']['list'][0]['unrealisedPnl']
@@ -121,7 +135,6 @@ def run_updater(session, group, trade):
                             percentage_sum = percentage_sum + ((float(value[2]) / 100) * float(key))
                             print("Added:", ((float(value[2]) / 100) * float(key)))
                             remaining_percentage = remaining_percentage - float(value[2])
-                            pnl_record = get_last_closed(session, 1)[0]
                             current_sum = current_sum - (trade.entrySum * float(value[2]) / 100)
 
 
@@ -139,7 +152,6 @@ def run_updater(session, group, trade):
                             percentage_sum = percentage_sum + ((float(value[2]) / 100) * float(key))
                             print("Added:", ((float(value[2]) / 100) * float(key)))
                             remaining_percentage = remaining_percentage - float(value[2])
-                            pnl_record = get_last_closed(session, 1)[0]
                             current_sum = current_sum - (trade.entrySum * float(value[2]) / 100)
 
 
@@ -147,16 +159,12 @@ def run_updater(session, group, trade):
                         print(f"Hit checkpoint at {key} and changed tp to {trade.take_profit_custom} and sl to {trade.stop_loss_custom}")
 
     except ValueError or ZeroDivisionError as e:
-        print(f"Trade on {trade.pair} closed")
+        print(f"Trade on {trade.pair} hit the stop loss at{current_roi}")
         time.sleep(3)
-        pnl_record = get_last_closed(session, 1)[0]
-        total_profit = trade.calculate_profit(
-            float(pnl_record['avgEntryPrice']),
-            float(pnl_record['avgExitPrice']))
-        print("Added:", (remaining_percentage/100))
+        total_profit = current_roi
         percentage_sum += total_profit * (remaining_percentage/100)
-
-    trade.save_trade(group, percentage_sum, pnl_record)
+    print(f"Trade on {trade.pair} closed")
+    trade.save_trade(group, percentage_sum)
 
 
 
@@ -225,10 +233,13 @@ def post_order(session, pair, qty, side, orderType, price):
 
 def open_position(session, trade, group):
 
-    current_price = float(get_current_price(session, trade.pair))
-    quantity = adjust_qty(session, trade.pair, trade.entrySum / current_price)
+    current_price = get_current_price(session, trade.pair)
+    quantity = adjust_qty(session, trade.pair, trade.entrySum / float(current_price))
+    print(quantity * Decimal(current_price))
     try:
+        print(trade.leverage)
         set_leverage(session, trade.pair, trade.leverage)
+
     except InvalidRequestError as e:
         print("Leverage not changed")
 

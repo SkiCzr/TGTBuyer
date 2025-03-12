@@ -21,7 +21,7 @@ def get_groups():
     num_groups = int(input("How many groups do you want to add? "))
 
     for i in range(num_groups):
-        print(f"\nEntering details for group {i + 1}:")
+        print(f"\nEntering details  for group {i + 1}:")
         group = {
             "name": input("Group name: "),
             "balance_percentage": float(input("Balance percentage: ")),

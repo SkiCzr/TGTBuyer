@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 import re
 
+import pytz
+
 
 class MyTrade:
     def __init__(self, trade_type, pair):
@@ -63,12 +65,15 @@ class MyTrade:
         return round(percent_change * self.leverage, 5)
 
 
-    def save_trade(self, group, profit, pnl_record, folder="TradingStats"):
+    def save_trade(self, group, profit, folder="TradingStats"):
+
+        amsterdam_tz = pytz.timezone('Europe/Amsterdam')
+
         # Ensure the folder exists
         os.makedirs(folder, exist_ok=True)
-        current_time = datetime.now()
-        entryPoint = pnl_record['avgEntryPrice']
-        timestamp = int(pnl_record['updatedTime'])/1000
+        current_time = datetime.now(amsterdam_tz).strftime('%d-%m-%Y %H:%M:%S')
+        entryPoint = self.entryPrice
+        timestamp = datetime.now()
         # Define file path inside the folder
         clean_name = re.sub(r'[<>:"/\\|?*]', "_", group.name)
         filename = os.path.join(folder, f"{clean_name}.json")
@@ -91,7 +96,7 @@ class MyTrade:
             "pair": self.pair,
             "entryPrice": entryPoint,
             "profit%": profit,
-            "timestamp": datetime.fromtimestamp(timestamp).strftime("%d-%m-%Y %H:%M:%S")
+            "timestamp": current_time
         }
         data["trades"].append(trade_data)
 
